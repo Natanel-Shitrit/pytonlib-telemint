@@ -31,7 +31,7 @@ Read data from NFT:
 Install `pytonlib-telemint` with pip:
 
 ```bash
-pip install pytonlib_telemint
+pip install pytonlib-telemint
 ```
 ## Usage / Examples
 
