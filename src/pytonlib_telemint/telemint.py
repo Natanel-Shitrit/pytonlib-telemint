@@ -8,9 +8,10 @@ from enum import Enum
 
 # https://github.com/TelegramMessenger/telemint/blob/main/func/common.fc#L30-L54
 # Error values.
-class TelemintError(Enum):
+class TelemintErrorCode(Enum):
     UNKNOWN_ERROR = -1
     SUCCESS = 0
+    SUCCESS_ALT = 1
     INVALID_LENGTH = 201
     INVALID_SIGNATURE = 202
     WRONG_SUBWALLET_ID = 203
@@ -43,11 +44,11 @@ class TelemintError(Enum):
 
 
 # Exception
-class MethodExitCode(Exception):
-    """Raised when exit code is not 'SUCCESS'."""
+class MethodError(Exception):
+    """Raised when method didn't exited successfully."""
     def __init__(self, method_name: str, exit_code: int) -> None:
         self.method_name: str = method_name
-        self.exit_code: TelemintError = TelemintError(exit_code)
+        self.exit_code: TelemintErrorCode = TelemintErrorCode(exit_code)
         print(f'Method "{self.method_name}" exited with {self.exit_code}')
 
 
@@ -128,7 +129,7 @@ class TelemintNFT:
         """
         try:
             raw_response: Dict = await self._get(client, 'token_name')
-        except MethodExitCode as e:
+        except MethodError as e:
             # Should handle exceptions for non-telemint NFTs?
             raise e
         
@@ -146,9 +147,9 @@ class TelemintNFT:
         """
         try:
             raw_response = await self._get(client, 'auction_state')
-        except MethodExitCode as e:
+        except MethodError as e:
             # exit code 219 = no auction is live.
-            if e.exit_code == TelemintError.NO_AUCTION:
+            if e.exit_code == TelemintErrorCode.NO_AUCTION:
                 return None
 
             # Should handle exceptions for non-telemint NFTs?
@@ -177,7 +178,7 @@ class TelemintNFT:
         """
         try:
             raw_response = await self._get(client, 'auction_config')
-        except MethodExitCode as e:
+        except MethodError as e:
             # Should handle exceptions for non-telemint NFTs?
             raise e
         
@@ -202,8 +203,8 @@ class TelemintNFT:
             stack_data=stack_data
         )
 
-        if raw_response['exit_code'] != TelemintError.SUCCESS.value:
-            raise MethodExitCode(method, raw_response['exit_code'])
+        if raw_response['exit_code'] != TelemintErrorCode.SUCCESS.value:
+            raise MethodError(method, raw_response['exit_code'])
 
         return raw_response
 
